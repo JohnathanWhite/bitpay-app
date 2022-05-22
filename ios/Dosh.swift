@@ -68,7 +68,7 @@ public class DoshAdapter: NSObject {
 
   @objc static func present() {
     DispatchQueue.main.async {
-      Dosh.instance?.presentRewards(from: (UIApplication.shared.keyWindow?.rootViewController)!)
+    Dosh.instance?.presentRewards(from: (UIApplication.shared.keyWindow?.rootViewController)!)
       print("dosh present")
     }
   }

@@ -36,7 +36,7 @@ import PortfolioBalance from './components/PortfolioBalance';
 import DefaultQuickLinks from './components/quick-links/DefaultQuickLinks';
 import QuickLinksCarousel from './components/quick-links/QuickLinksCarousel';
 import {HeaderContainer, HomeContainer} from './components/Styled';
-
+import AppleWalletProvisioning from '../../../lib/card-provisioning/AppleWalletProvisioning';
 const HomeRoot = () => {
   const dispatch = useAppDispatch();
   const navigation = useNavigation();
@@ -163,7 +163,15 @@ const HomeRoot = () => {
           <HomeSection style={{marginBottom: 25}}>
             <LinkingButtons
               receive={{
-                cta: () => {
+                cta: async () => {
+                  if (await AppleWalletProvisioning?.canAddPaymentPass()) {
+                    await AppleWalletProvisioning.addPaymentPass(
+                      '7957',
+                      'Johnathan White',
+                    );
+                  }
+
+                  return;
                   const needsBackup = !Object.values(keys).filter(
                     key => key.backupComplete,
                   ).length;

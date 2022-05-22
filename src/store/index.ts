@@ -234,7 +234,7 @@ const logger = createLogger({
 
 const getStore = () => {
   const middlewares = [thunkMiddleware];
-  if (__DEV__) {
+  if (!__DEV__) {
     // @ts-ignore
     middlewares.push(logger);
   }
