@@ -114,32 +114,32 @@ const Connections: React.VFC<ConnectionsProps> = props => {
         </ConnectionItemContainer>
         <AngleRight />
       </Setting>
-      <Hr />
-      <Setting
-        onPress={() => {
-          haptic('impactLight');
-          dispatch(
-            Analytics.track('Clicked ZenLedger', {
-              context: 'Settings Connections',
-            }),
-          );
-          setShowZenLedgerModal(true);
-        }}>
-        <ConnectionItemContainer>
-          <ConnectionIconContainer>
-            <ZenLedgerIcon width={30} height={25} />
-          </ConnectionIconContainer>
-          <SettingTitle>ZenLedger Taxes</SettingTitle>
-        </ConnectionItemContainer>
-        <AngleRight />
-      </Setting>
+      {/*<Hr />*/}
+      {/*<Setting*/}
+      {/*  onPress={() => {*/}
+      {/*    haptic('impactLight');*/}
+      {/*    dispatch(*/}
+      {/*      Analytics.track('Clicked ZenLedger', {*/}
+      {/*        context: 'Settings Connections',*/}
+      {/*      }),*/}
+      {/*    );*/}
+      {/*    setShowZenLedgerModal(true);*/}
+      {/*  }}>*/}
+      {/*  <ConnectionItemContainer>*/}
+      {/*    <ConnectionIconContainer>*/}
+      {/*      <ZenLedgerIcon width={30} height={25} />*/}
+      {/*    </ConnectionIconContainer>*/}
+      {/*    <SettingTitle>ZenLedger Taxes</SettingTitle>*/}
+      {/*  </ConnectionItemContainer>*/}
+      {/*  <AngleRight />*/}
+      {/*</Setting>*/}
 
-      <ZenLedgerModal
-        isVisible={showZenLedgerModal}
-        onDismiss={() => {
-          setShowZenLedgerModal(false);
-        }}
-      />
+      {/*<ZenLedgerModal*/}
+      {/*  isVisible={showZenLedgerModal}*/}
+      {/*  onDismiss={() => {*/}
+      {/*    setShowZenLedgerModal(false);*/}
+      {/*  }}*/}
+      {/*/>*/}
     </SettingsComponent>
   );
 };
