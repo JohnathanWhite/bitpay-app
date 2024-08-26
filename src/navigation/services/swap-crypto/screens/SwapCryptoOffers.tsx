@@ -61,6 +61,7 @@ import {
   getEstimatedTimeStrFromRoute,
   getProvidersPathFromRoute,
   getThorswapFixedCoin,
+  getThorswapRouteBySpenderKey,
   getThorswapSpenderDataFromRoute,
   thorswapEnv,
 } from '../utils/thorswap-utils';
@@ -91,7 +92,6 @@ import {
   ThorswapQuoteRoute,
 } from '../../../../store/swap-crypto/models/thorswap.models';
 import {getERC20TokenAllowance} from '../../../../store/moralis/moralis.effects';
-import ApproveErc20Modal from '../../components/ApproveErc20Modal';
 import {toFiat} from '../../../../store/wallet/utils/wallet';
 import {WIDTH} from '../../../../components/styled/Containers';
 import {SelectorArrowContainer} from '../styled/SwapCryptoRoot.styled';
@@ -476,20 +476,14 @@ const SwapCryptoOffers: React.FC = () => {
   });
 
   const [offers, setOffers] = useState(cloneDeep(offersDefault));
-  const [openingBrowser, setOpeningBrowser] = useState(false);
+  const [switchingThorswapProvider, setSwitchingThorswapProvider] =
+    useState(false);
   const [finishedChangelly, setFinishedChangelly] = useState(false);
   const [finishedThorswap, setFinishedThorswap] = useState(false);
   const [updateView, setUpdateView] = useState<number>(0);
-  const [approveErc20ModalData, setApproveErc20ModalData] = useState<{
-    visible: boolean;
-    approveErc20ModalOpts: {
-      offerKey?: SwapCryptoExchangeKey;
-      offerName?: string;
-      spenderKey?: ThorswapProvider;
-      spenderName?: string;
-      spenderAddress?: string;
-    };
-  }>({visible: false, approveErc20ModalOpts: {}});
+  const [approveThorswapSpenderKey, setApproveThorswapSpenderKey] = useState<
+    ThorswapProvider | undefined
+  >();
 
   const getChangellyQuote = async (): Promise<void> => {
     logger.debug('Changelly getting quote');
@@ -700,8 +694,36 @@ const SwapCryptoOffers: React.FC = () => {
       const thorswapQuoteData: ThorswapGetSwapQuoteData =
         await selectedWalletFrom.thorswapGetSwapQuote(requestData);
 
+      // TODO: remove this if(...) when Thorswap team fix the 1inch issue
+      // Workaround to prevent an issue from Thorswap in which 1inch v4 is the spender and 1inch v5 is the destination address
+      if (
+        thorswapQuoteData?.routes &&
+        Array.isArray(thorswapQuoteData.routes)
+      ) {
+        logger.debug('Removing ONEINCH from available Thorswap routes');
+        thorswapQuoteData.routes = thorswapQuoteData.routes.filter(
+          r => r.providers[0] !== 'ONEINCH',
+        );
+      }
+
       if (thorswapQuoteData?.routes && thorswapQuoteData?.routes[0]) {
-        const bestRoute: ThorswapQuoteRoute = thorswapQuoteData.routes[0];
+        let bestRoute: ThorswapQuoteRoute = thorswapQuoteData.routes[0];
+        if (
+          offers.thorswap.selectedSpenderKey &&
+          offers.thorswap.approveConfirming
+        ) {
+          const confirmingRoute = getThorswapRouteBySpenderKey(
+            thorswapQuoteData.routes,
+            offers.thorswap.selectedSpenderKey);
+
+          if (!confirmingRoute) {
+            logger.debug(
+              'Route not present in the new Thorswap quote for the confirming allowance provider',
+            );
+            return;
+          }
+          bestRoute = confirmingRoute;
+        }
 
         offers.thorswap.outOfLimitMsg = undefined;
         offers.thorswap.errorMsg = undefined;
@@ -821,6 +843,7 @@ const SwapCryptoOffers: React.FC = () => {
   };
 
   const setSelectedThorswapRoute = (selectedRoute: ThorswapQuoteRoute) => {
+    setSwitchingThorswapProvider(true);
     offers.thorswap.selectedSpenderKey = selectedRoute.providers[0];
     offers.thorswap.selectedProvidersPath =
       getProvidersPathFromRoute(selectedRoute);
@@ -884,6 +907,7 @@ const SwapCryptoOffers: React.FC = () => {
     offers.thorswap.errorMsg = msg;
     offers.thorswap.amountReceiving = undefined;
     offers.thorswap.expanded = false;
+    setSwitchingThorswapProvider(false);
     setUpdateView(Math.random());
   };
 
@@ -961,8 +985,7 @@ const SwapCryptoOffers: React.FC = () => {
       toWalletSelected: selectedWalletTo!,
       amountFrom: amountFrom,
       spenderKey:
-        approveErc20ModalData?.approveErc20ModalOpts?.spenderKey ??
-        offers.thorswap.selectedSpenderKey,
+        approveThorswapSpenderKey ?? offers.thorswap.selectedSpenderKey,
       slippage: offers.thorswap.slippage,
       thorswapConfig: swapCryptoConfig?.thorswap,
       useSendMax: IsERCToken(
@@ -1023,21 +1046,23 @@ const SwapCryptoOffers: React.FC = () => {
     );
   };
 
-  const showApproveErc20Modal = (offer: SwapCryptoOffer) => {
+  const goToApproveErc20 = (offer: SwapCryptoOffer) => {
     let selectedRoute: ThorswapQuoteRoute | undefined;
     if (offer.selectedSpenderKey) {
+      logger.debug(
+        `Trying to go to Approve ERC20 Screen with spenderKey: ${offer.selectedSpenderKey}`,
+      );
       selectedRoute = (offer.quoteData as ThorswapQuoteRoute[]).find(
         route => route.providers[0] === offer.selectedSpenderKey,
       );
     }
 
-    if (!selectedRoute) {
-      selectedRoute = offer.quoteData[0];
-    }
 
     if (!selectedRoute) {
-      let err = t("Can't get rates at this moment. Please try again later");
-      const reason = 'checkTokenAllowance Error. selectedRoute not found.';
+      let err = t(
+        'There was an error trying to perform the Approve ERC20 function for the selected provider. Please try again later',
+      );
+      const reason = 'goToApproveErc20 Error. selectedRoute not found.';
       showThorswapError(err, reason);
       return;
     }
@@ -1045,21 +1070,41 @@ const SwapCryptoOffers: React.FC = () => {
     const spenderData = getThorswapSpenderDataFromRoute(selectedRoute);
 
     if (!spenderData?.address) {
-      let err = t("Can't get rates at this moment. Please try again later");
+      let err = t(
+        "It was not possible to obtain the provider's address to perform the Approve ERC20 function. Please try again later",
+      );
       const reason =
-        'checkTokenAllowance Error. spenderData.address not included.';
+        'goToApproveErc20 Error. spenderData.address not included.';
       showThorswapError(err, reason);
       return;
     }
 
-    setApproveErc20ModalData({
-      visible: true,
-      approveErc20ModalOpts: {
-        offerKey: offer.key,
-        offerName: offer.name,
-        spenderKey: spenderData.key,
-        spenderName: spenderData.key,
-        spenderAddress: spenderData.address,
+    setApproveThorswapSpenderKey(spenderData.key);
+
+    navigation.navigate(SwapCryptoScreens.SWAP_CRYPTO_APPROVE, {
+      context: 'swapCrypto',
+      onDismiss: async (approveTxSent, err) => {
+        if (err) {
+          await sleep(1000);
+          const title = t('Approve method Error');
+          showError(title, err, true);
+          return;
+        }
+        if (approveTxSent?.txid && offer.key) {
+          // show waiting confirmation message
+          offers[offer.key].approveConfirming = true;
+          offers[offer.key].expanded = true;
+          setUpdateView(Math.random());
+          checkTokenAllowance(true, 3000);
+        }
+      },
+      wallet: selectedWalletFrom,
+      spenderData: {
+        offerKey: offer.key || '',
+        offerName: offer.name || '',
+        spenderKey: spenderData.key!,
+        address: spenderData.address || '',
+        amount: cloneDeep(amountFrom).toString(),
       },
     });
   };
@@ -1110,12 +1155,11 @@ const SwapCryptoOffers: React.FC = () => {
         );
       }
 
-      if (!selectedRoute) {
-        selectedRoute = offers.thorswap.quoteData[0];
-      }
 
       if (!selectedRoute) {
-        let err = t("Can't get rates at this moment. Please try again later");
+        let err = t(
+          "Can't get ERC20 allowances at this moment. Please try again later",
+        );
         const reason = 'checkTokenAllowance Error. selectedRoute not found.';
         showThorswapError(err, reason);
         return;
@@ -1123,7 +1167,9 @@ const SwapCryptoOffers: React.FC = () => {
 
       const spenderData = getThorswapSpenderDataFromRoute(selectedRoute);
       if (!spenderData?.address) {
-        let err = t("Can't get rates at this moment. Please try again later");
+        let err = t(
+          "Can't get ERC20 allowances at this moment. Please try again later",
+        );
         const reason =
           'checkTokenAllowance Error. spenderData.address not included.';
         showThorswapError(err, reason);
@@ -1148,6 +1194,8 @@ const SwapCryptoOffers: React.FC = () => {
       logger.debug(
         `Amount to deposit: ${depositSat} | Allowance amount for contract(${spenderData.address}) : ${allowance}`,
       );
+      setSwitchingThorswapProvider(false);
+
       if (allowance < depositSat) {
         if (waitingApproveTxConfirm) {
           if (unmountView) {
@@ -1187,6 +1235,7 @@ const SwapCryptoOffers: React.FC = () => {
       const reason =
         'checkTokenAllowance Error. Exception during verification.';
       showThorswapError(_err, reason);
+      setSwitchingThorswapProvider(false);
       return;
     }
   };
@@ -1247,7 +1296,6 @@ const SwapCryptoOffers: React.FC = () => {
       logger.error(msg);
       showError(title, msg, true);
     } else {
-      setOpeningBrowser(false);
       if (offers.changelly.showOffer) {
         offers.changelly.swapClicked = false;
         getChangellyQuote();
@@ -1284,7 +1332,7 @@ const SwapCryptoOffers: React.FC = () => {
   }, [finishedChangelly, finishedThorswap, updateView]);
 
   useEffect(() => {
-    if (!offers.thorswap.amountReceiving) {
+    if (!offers.thorswap.amountReceiving || offers.thorswap.approveConfirming) {
       return;
     }
 
@@ -1296,6 +1344,7 @@ const SwapCryptoOffers: React.FC = () => {
     if (fromIsErc20Token) {
       checkTokenAllowance();
     } else {
+      setSwitchingThorswapProvider(false);
       offers.thorswap.showApprove = false;
       offers.thorswap.approveConfirming = false;
     }
@@ -1437,7 +1486,10 @@ const SwapCryptoOffers: React.FC = () => {
                           <Button
                             action={true}
                             buttonType={'pill'}
-                            disabled={openingBrowser}
+                            disabled={
+                              offer.key === 'thorswap' &&
+                              switchingThorswapProvider
+                            }
                             onPress={() => {
                               if (offer.showApprove) {
                                 if (
@@ -1445,13 +1497,12 @@ const SwapCryptoOffers: React.FC = () => {
                                   !offer.approveConfirming
                                 ) {
                                   haptic('impactLight');
-                                  showApproveErc20Modal(offer);
+                                  goToApproveErc20(offer);
                                 } else {
                                   expandCard(offer);
                                 }
                               } else {
                                 offer.swapClicked = true;
-                                setOpeningBrowser(true);
                                 goTo(offer.key);
                               }
                             }}
@@ -1634,7 +1685,7 @@ const SwapCryptoOffers: React.FC = () => {
                           <ExchangeTermsContainer style={{marginTop: 16}}>
                             <TermsText>
                               {
-                                'Your Approve transaction is pending confirmation, please wait.'
+                                'Your Approve transaction is pending confirmation. This may take a few mimnutes, please wait...'
                               }
                             </TermsText>
                             <SpinnerContainer>
@@ -1671,10 +1722,13 @@ const SwapCryptoOffers: React.FC = () => {
                             <Button
                               action={true}
                               buttonType={'pill'}
-                              disabled={openingBrowser}
+                              disabled={
+                                offer.key === 'thorswap' &&
+                                switchingThorswapProvider
+                              }
                               onPress={() => {
                                 haptic('impactLight');
-                                showApproveErc20Modal(offer);
+                                goToApproveErc20(offer);
                               }}>
                               {`Approve ${selectedWalletFrom.currencyAbbreviation.toUpperCase()}`}
                             </Button>
@@ -1814,50 +1868,6 @@ const SwapCryptoOffers: React.FC = () => {
           </TermsContainer>
         </ScrollView>
       </SwapCryptoOffersContainer>
-
-      <ApproveErc20Modal
-        isVisible={approveErc20ModalData.visible}
-        modalContext={'swapCrypto'}
-        modalTitle={t('Approve Swap')}
-        onDismiss={async (approveTxSent, err) => {
-          setApproveErc20ModalData({
-            visible: false,
-            approveErc20ModalOpts: approveErc20ModalData.approveErc20ModalOpts,
-          });
-          if (err) {
-            await sleep(1000);
-            const title = t('Approve method Error');
-            showError(title, err, true);
-            return;
-          }
-          if (
-            approveTxSent?.txid &&
-            approveErc20ModalData?.approveErc20ModalOpts?.offerKey
-          ) {
-            // show waiting confirmation message
-            offers[
-              approveErc20ModalData.approveErc20ModalOpts.offerKey
-            ].approveConfirming = true;
-            offers[
-              approveErc20ModalData.approveErc20ModalOpts.offerKey
-            ].expanded = true;
-            setUpdateView(Math.random());
-            checkTokenAllowance(true, 3000);
-          }
-        }}
-        wallet={selectedWalletFrom}
-        spenderData={{
-          offerKey: approveErc20ModalData.approveErc20ModalOpts.offerKey || '',
-          offerName:
-            approveErc20ModalData.approveErc20ModalOpts.offerName || '',
-          spenderKey: approveErc20ModalData.approveErc20ModalOpts.spenderKey!,
-          spenderName:
-            approveErc20ModalData.approveErc20ModalOpts.spenderName || '',
-          address:
-            approveErc20ModalData.approveErc20ModalOpts.spenderAddress || '',
-          amount: cloneDeep(amountFrom).toString(),
-        }}
-      />
     </>
   );
 };
