@@ -25,6 +25,7 @@ import {sleep} from '../../../utils/helper-methods';
 import {css} from 'styled-components/native';
 import {ExternalServicesScreens} from '../../../navigation/services/ExternalServicesGroup';
 import {Keys} from '../../../store/wallet/wallet.reducer';
+import ArchaxFooter from '../../archax/archax-footer';
 
 const TransactButton = styled.View`
   justify-content: center;
@@ -120,7 +121,8 @@ const TransactModal = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const hideModal = () => setModalVisible(false);
   const showModal = () => setModalVisible(true);
-  const {keys} = useAppSelector(({WALLET}) => WALLET);
+  const keys = useAppSelector(({WALLET}) => WALLET.keys);
+  const showArchaxBanner = useAppSelector(({APP}) => APP.showArchaxBanner);
   const availableWallets = Object.values(keys as Keys)
     .filter(key => key.backupComplete)
     .flatMap(key => key.wallets)
@@ -129,15 +131,16 @@ const TransactModal = () => {
         !wallet.hideWallet &&
         !wallet.hideWalletByAccount &&
         wallet.isComplete() &&
-        !wallet.pendingTssSession &&
-        wallet.balance.sat > 0,
+        !wallet.pendingTssSession,
     );
 
   const availableWalletsWithFunds = availableWallets.filter(
     wallet => wallet.balance.sat > 0,
   );
 
+  // Receive / Buy: disabled only when no wallet exists at all.
   const disabledReceivingOptions = availableWallets.length === 0;
+  // Send / Sell / Swap / Gift cards: disabled when no wallet has funds.
   const disabledSendingOptions = availableWalletsWithFunds.length === 0;
   const dispatch = useAppDispatch();
 
@@ -304,6 +307,7 @@ const TransactModal = () => {
               </View>
               <ScanButtonText>{ScanButton.title}</ScanButtonText>
             </ScanButtonContainer>
+            {showArchaxBanner && <ArchaxFooter matchParentWidth />}
             <CloseButtonContainer onPress={hideModal}>
               <View>
                 <Icons.Close />
