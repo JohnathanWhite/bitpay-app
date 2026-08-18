@@ -932,6 +932,8 @@ export const setEmailNotifications =
     });
   };
 
+const NEW_BLOCK_STATUS_REFRESH_DEBOUNCE_MS = 30000;
+
 const _startUpdateAllKeyAndWalletStatus = debounce(
   async (dispatch, chain, tokenAddress) => {
     dispatch(
@@ -945,8 +947,23 @@ const _startUpdateAllKeyAndWalletStatus = debounce(
     );
     DeviceEventEmitter.emit(DeviceEmitterEvents.WALLET_LOAD_HISTORY);
   },
-  5000,
-  {leading: true, trailing: false},
+  // NewBlock notifications arrive about every 2s on Polygon/Base/Optimism, so a
+  // 5s leading-edge debounce pinned this at the ceiling: a forced (cache-
+  // bypassing) all-keys status refresh plus a WALLET_LOAD_HISTORY emit every 5
+  // seconds for as long as the app was foregrounded. Each cycle also dirtied the
+  // WALLET slice, driving a full persist/serialize/AES cycle.
+  //
+  // 30s with a trailing edge keeps the first block after a quiet period snappy
+  // (leading) and still reflects the last block of a burst (trailing), while
+  // cutting the refresh treadmill ~6x.
+  //
+  // NOTE: `chain`/`tokenAddress` are passed through but only consumed when
+  // `createTokenWalletWithFunds` is true (this path passes false), so the
+  // refresh is still repo-wide rather than scoped to the block's chain. Scoping
+  // it needs `chain` threaded through startUpdateAllWalletStatusForKeys and is
+  // deliberately left out of this change.
+  NEW_BLOCK_STATUS_REFRESH_DEBOUNCE_MS,
+  {leading: true, trailing: true},
 );
 
 const _createWalletAddress = debounce(
