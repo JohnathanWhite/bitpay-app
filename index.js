@@ -13,6 +13,8 @@ if (IS_MAESTRO === 'true') {
 import Root from './src/Root';
 import React, {useState, useEffect} from 'react';
 import './i18n';
+// Sets axios.defaults.timeout so no request can hang forever.
+import './src/lib/axios-defaults';
 import {
   setJSExceptionHandler,
   setNativeExceptionHandler,
