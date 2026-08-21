@@ -100,6 +100,7 @@ import {MMKV} from 'react-native-mmkv';
 import {getErrorString} from '../utils/helper-methods';
 import {AppDispatch} from '../utils/hooks';
 import {logManager} from '../managers/LogManager';
+import {mark} from '../lib/aperture-mark';
 import * as Sentry from '@sentry/react-native';
 
 export const storage = new MMKV();
@@ -567,6 +568,17 @@ const getStore = async () => {
                 sizeByReduxKey,
               )}`,
             );
+            // Same measurement, emitted for Aperture: turns the largest startup
+            // phase from an inferred proxy into an exact, source-attributed event.
+            // `took` is -1 when the persist-start timestamp was missing; only
+            // report a real duration (Aperture rejects a negative one).
+            mark({
+              id: 'rehydrate_complete',
+              label: 'Redux rehydrate complete',
+              category: 'storage',
+              durationMs: took >= 0 ? took : undefined,
+              source: {file: 'src/store/index.ts', symbol: 'REHYDRATE'},
+            });
           } catch (_) {}
         }
       }
