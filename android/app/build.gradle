@@ -155,6 +155,19 @@ android {
             abiFilters "armeabi-v7a", "arm64-v8a"
         }
     }
+    // The androidTest suite (Espresso / UI Automator / Allure) pulls in libraries that
+    // ship duplicate META-INF metadata; exclude it so assembleDebugAndroidTest doesn't
+    // fail on the merge. Scoped to the app module rather than mutating every subproject.
+    packagingOptions {
+        resources {
+            excludes += [
+                'META-INF/LICENSE*',
+                'META-INF/NOTICE*',
+                'META-INF/DEPENDENCIES',
+                'META-INF/*.kotlin_module',
+            ]
+        }
+    }
     sourceSets {
         debugOptimized.java.srcDir("src/debug/java")
     }

@@ -39,7 +39,6 @@ class Test593SendBTC : BaseTest() {
 
         allureStep("Enter recovery phrase and import wallet") {
             importWalletPage.enterRecoveryPhrase(walletPhrase)
-            allureScreenshot("Recovery phrase entered")
             importWalletPage.clickImportWallet()
         }
 

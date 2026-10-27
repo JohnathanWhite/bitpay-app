@@ -1,5 +1,3 @@
-# Tests
-
 # BitPay App v2
 
 Welcome to BitPay App v2!
@@ -35,10 +33,13 @@ Then open `android/app/src/main/res/xml/network_security_config.xml` and add you
 
 For example if your local IP is `123.0.0.7` and your cert is in `res/raw/lbitpay.der`:
 
-    <domain-config></domain>
+    <domain-config>
       ...
       <domain includeSubdomains="true">123.0.0.7</domain>
-      <trust-anchors>                  </domain-config>
+      <trust-anchors>
+        <certificates src="@raw/lbitpay" />
+      </trust-anchors>
+    </domain-config>
 
 ### Redux Dev Tools
 

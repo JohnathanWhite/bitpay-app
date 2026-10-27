@@ -27,8 +27,8 @@
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       shouldUseLaunchSchemeArgsEnv = "YES"
-      systemAttachmentLifetime = "keepAlways"
-      userAttachmentLifetime = "keepAlways">
+      systemAttachmentLifetime = "deleteOnSuccess"
+      userAttachmentLifetime = "deleteOnSuccess">
       <Testables>
          <TestableReference
             skipped = "NO">

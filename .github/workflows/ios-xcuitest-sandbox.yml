@@ -12,6 +12,9 @@ on:
           - Sandbox
           - Main_Workspace
 
+permissions:
+  contents: read
+
 concurrency:
   group: e2e-ios-xcui-${{ github.ref }}
   cancel-in-progress: true

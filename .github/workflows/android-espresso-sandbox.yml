@@ -12,6 +12,9 @@ on:
           - Sandbox
           - Main_Workspace
 
+permissions:
+  contents: read
+
 concurrency:
   group: e2e-android-espresso-${{ github.ref }}
   cancel-in-progress: true
@@ -122,9 +125,11 @@ jobs:
         run: yarn set:WalletPhrase
 
       - name: Create Sentry properties
+        env:
+          SENTRY_PROPERTIES: ${{ secrets.SENTRY_PROPERTIES }}
         run: |
-          echo "${{ secrets.SENTRY_PROPERTIES }}" > sentry.properties
-          echo "${{ secrets.SENTRY_PROPERTIES }}" > android/sentry.properties
+          printf '%s' "$SENTRY_PROPERTIES" > sentry.properties
+          printf '%s' "$SENTRY_PROPERTIES" > android/sentry.properties
 
       - name: Set native config values
         run: yarn set:dev
@@ -225,7 +230,6 @@ jobs:
           sudo ln -sf /opt/allure/bin/allure /usr/local/bin/allure
 
       - name: Zip Allure Results
-        if: always()
         run: |
           rm -f allure-results.zip
           zip -r allure-results.zip allure-results/
@@ -233,7 +237,6 @@ jobs:
           unzip -l allure-results.zip | head -30
 
       - name: Upload Allure Results Artifact
-        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: allure-results
@@ -257,7 +260,6 @@ jobs:
         run: npm install -g @testlio/cli
 
       - name: Upload Results to Testlio
-        if: always()
         env:
           TESTLIO_DEVICE_ID: ${{ secrets.TESTLIO_ANDROID_DEVICE_ID }}
           RUN_API_TOKEN: ${{ inputs.environment == 'Sandbox' && secrets.TESTLIO_RUN_TOKEN || secrets.TESTLIO_RUN_TOKEN_BITPAY }}

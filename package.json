@@ -43,10 +43,9 @@
     "reset-allowed-url-prefixes": "node ./scripts/allowed-url-prefixes.js reset",
     "reset-braze": "node ./scripts/braze-config-reset.js",
     "reset-google-maps": "node ./scripts/google-maps-reset.js",
-    "translation:extract": "yarn run i18next 'src/**/*.{js,jsx,ts,tsx}'",
-    "translation:upload": "crowdin upload sources --identity crowdin-credentials.yml",
-    "translation:download": "crowdin download --identity crowdin-credentials.yml",
+    "translation:extract": "npx i18next-cli extract",
     "set:WalletPhrase": "export NODE_ENV=development && node ./scripts/wallet-phrase.js",
+    "reset:WalletPhrase": "node ./scripts/wallet-phrase-reset.js",
     "translation:check": "node --test scripts/check-translations.test.js && node scripts/check-translations.js"
   },
   "dependencies": {

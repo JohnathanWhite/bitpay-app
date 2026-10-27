@@ -14,6 +14,7 @@
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		256B92C82AC0ED0D00C1DF97 /* bitpay-recovery-phrase-template.pdf in Resources */ = {isa = PBXBuildFile; fileRef = 256B92C72AC0ED0D00C1DF97 /* bitpay-recovery-phrase-template.pdf */; };
 		4054F0E729AEFAF0009BBC9C /* AllowedUrlPrefixProtocol.mm in Sources */ = {isa = PBXBuildFile; fileRef = 4054F0E529AEFAEF009BBC9C /* AllowedUrlPrefixProtocol.mm */; };
+		CA5471E01A2B3C4D5E6F7001 /* RCTCrashTest.mm in Sources */ = {isa = PBXBuildFile; fileRef = CA5471E01A2B3C4D5E6F7002 /* RCTCrashTest.mm */; };
 		523EFC4FD62CB0CD2FBD02FC /* libPods-BitPayApp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B1AA7DD4226DBC3478258808 /* libPods-BitPayApp.a */; };
 		52C9714B9004BCE190EA469D /* BundleHash.swift in Sources */ = {isa = PBXBuildFile; fileRef = E30DDDCF29E5E048D75CCF1A /* BundleHash.swift */; };
 		5B5631782838854000C395A8 /* PassKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5B5631772838854000C395A8 /* PassKit.framework */; };
@@ -72,6 +73,8 @@
 		13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = PrivacyInfo.xcprivacy; path = BitPayApp/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		256B92C72AC0ED0D00C1DF97 /* bitpay-recovery-phrase-template.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; name = "bitpay-recovery-phrase-template.pdf"; path = "../assets/files/bitpay-recovery-phrase-template.pdf"; sourceTree = "<group>"; };
 		4054F0E529AEFAEF009BBC9C /* AllowedUrlPrefixProtocol.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AllowedUrlPrefixProtocol.mm; sourceTree = "<group>"; };
+		CA5471E01A2B3C4D5E6F7002 /* RCTCrashTest.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RCTCrashTest.mm; sourceTree = "<group>"; };
+		CA5471E01A2B3C4D5E6F7003 /* RCTCrashTest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RCTCrashTest.h; sourceTree = "<group>"; };
 		4054F0E629AEFAF0009BBC9C /* AllowedUrlPrefixProtocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AllowedUrlPrefixProtocol.h; sourceTree = "<group>"; };
 		4221E54904CA4996330CEB54 /* Pods-BitPayApp.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-BitPayApp.debug.xcconfig"; path = "Target Support Files/Pods-BitPayApp/Pods-BitPayApp.debug.xcconfig"; sourceTree = "<group>"; };
 		4BD0D9E39B2B473191E700CE /* Archivo-ExtraBold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Archivo-ExtraBold.ttf"; path = "../assets/fonts/Archivo-ExtraBold.ttf"; sourceTree = "<group>"; };
@@ -224,7 +227,6 @@
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
 				7950FCCDC90E6306EDD77BCD /* Pods */,
 				3A6F88D6BF7C4F7A8D93264A /* Resources */,
-				CDF085022FACD87900CA4C1B /* Recovered References */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -287,14 +289,6 @@
 				CD9683A72FB70CC700192CFF /* AppFlows.swift */,
 			);
 			path = flows;
-			sourceTree = "<group>";
-		};
-		CDF085022FACD87900CA4C1B /* Recovered References */ = {
-			isa = PBXGroup;
-			children = (
-				6D7C95E62E9007E200F0D481 /* RCTPushPermissionManager.mm */,
-			);
-			name = "Recovered References";
 			sourceTree = "<group>";
 		};
 		CDF085082FACD8A500CA4C1B /* BitPayAppUITests */ = {
@@ -431,7 +425,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "export SENTRY_DISABLE_AUTO_UPLOAD=true\n\nset -e\n\nif [ -z \"$NODE_BINARY\" ]; then\n  export NODE_BINARY=$(command -v node || true)\nfi\nif [ -z \"$NODE_BINARY\" ] || [ ! -x \"$NODE_BINARY\" ]; then\n  echo \"error: NODE_BINARY not set and 'node' not found on PATH.\"\n  exit 1\nfi\necho \"Using NODE_BINARY=$NODE_BINARY\"\n\nWITH_ENVIRONMENT=\"$REACT_NATIVE_PATH/scripts/xcode/with-environment.sh\"\nSENTRY_XCODE=\"../node_modules/@sentry/react-native/scripts/sentry-xcode.sh\"\n\n/bin/sh -c \"$WITH_ENVIRONMENT $SENTRY_XCODE\"\n";
+			shellScript = "set -e\n\nif [ -z \"$NODE_BINARY\" ]; then\n  export NODE_BINARY=$(command -v node || true)\nfi\nif [ -z \"$NODE_BINARY\" ] || [ ! -x \"$NODE_BINARY\" ]; then\n  echo \"error: NODE_BINARY not set and 'node' not found on PATH.\"\n  exit 1\nfi\necho \"Using NODE_BINARY=$NODE_BINARY\"\n\nWITH_ENVIRONMENT=\"$REACT_NATIVE_PATH/scripts/xcode/with-environment.sh\"\nSENTRY_XCODE=\"../node_modules/@sentry/react-native/scripts/sentry-xcode.sh\"\n\n/bin/sh -c \"$WITH_ENVIRONMENT $SENTRY_XCODE\"\n";
 		};
 		3C1070649A3322DC1391852F /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -531,6 +525,7 @@
 			files = (
 				B17FA8700A11CE0000000001 /* BitPayFabricModalPresenter.mm in Sources */,
 				4054F0E729AEFAF0009BBC9C /* AllowedUrlPrefixProtocol.mm in Sources */,
+				CA5471E01A2B3C4D5E6F7001 /* RCTCrashTest.mm in Sources */,
 				EC0FDD6A2CC92E90009E1B35 /* InAppMessageModule.mm in Sources */,
 				761780ED2CA45674006654EE /* AppDelegate.swift in Sources */,
 				6D7C95E72E9007E200F0D481 /* RCTPushPermissionManager.mm in Sources */,
@@ -585,7 +580,8 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 4221E54904CA4996330CEB54 /* Pods-BitPayApp.debug.xcconfig */;
 			buildSettings = {
-				ALLOWED_URL_PREFIXES = "https://bitpay.com/,https://test.bitpay.com/,https://staging.bitpay.com/,https://bws.bitpay.com/,https://www.coinbase.com/,https://api.coinbase.com/,https://api.1inch.dev/swap/v5.2/,https://api.coingecko.com/api/v3/simple/token_price/,https://checkout.simplexcc.com/,https://sandbox.test-simplexcc.com,https://api.moonpay.com/,https://api.moonpay.dev/,https://api.zenledger.io/bitpay/wallets/,https://rest.iad-05.braze.com/,https://sdk.iad-05.braze.com/,https://cloudflare-eth.com/,https://sepolia.infura.io/v3/,https://polygon-rpc.com/,https://polygon-amoy.core.chainstack.com/,https://static.methodfi.com/,https://api.zenledger.io/,https://api.blockcypher.com/v1/,https://api.fullstack.cash/v5/,https://deep-index.moralis.io/api/v2.2/,https://api.bitcore.io/api,https://api-eth.bitcore.io/api,https://api-matic.bitcore.io/api,https://api-arb.bitcore.io/api,https://api-base.bitcore.io/api,https://api-op.bitcore.io/api,https://api-xrp.bitcore.io/api,https://api-sol.bitcore.io/api,https://portal.polygon.technology/bridge,https://bridge.arbitrum.io/,https://bridge.base.org/,https://app.optimism.io/bridge/,https://mainnet.optimism.io/,https://arb1.arbitrum.io/rpc,https://mainnet.base.org/,https://goerli.optimism.io,https://goerli-rollup.arbitrum.io/rpc,https://goerli.base.org,https://verify.walletconnect.com/,https://verify.walletconnect.org/,https://api.etherscan.io/v2/api,https://solana-gateway.moralis.io/,https://tokens-data.1inch.io/images/501/";
+				ALLOWED_URL_PREFIXES = "ALLOWED-URL-PREFIXES-REPLACE-ME";
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = "$(inherited)";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES = NO;
 				CLANG_ENABLE_MODULES = YES;
@@ -628,7 +624,8 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = E639E0380D05420CD0D64119 /* Pods-BitPayApp.release.xcconfig */;
 			buildSettings = {
-				ALLOWED_URL_PREFIXES = "https://bitpay.com/,https://test.bitpay.com/,https://staging.bitpay.com/,https://bws.bitpay.com/,https://www.coinbase.com/,https://api.coinbase.com/,https://api.1inch.dev/swap/v5.2/,https://api.coingecko.com/api/v3/simple/token_price/,https://checkout.simplexcc.com/,https://sandbox.test-simplexcc.com,https://api.moonpay.com/,https://api.moonpay.dev/,https://api.zenledger.io/bitpay/wallets/,https://rest.iad-05.braze.com/,https://sdk.iad-05.braze.com/,https://cloudflare-eth.com/,https://sepolia.infura.io/v3/,https://polygon-rpc.com/,https://polygon-amoy.core.chainstack.com/,https://static.methodfi.com/,https://api.zenledger.io/,https://api.blockcypher.com/v1/,https://api.fullstack.cash/v5/,https://deep-index.moralis.io/api/v2.2/,https://api.bitcore.io/api,https://api-eth.bitcore.io/api,https://api-matic.bitcore.io/api,https://api-arb.bitcore.io/api,https://api-base.bitcore.io/api,https://api-op.bitcore.io/api,https://api-xrp.bitcore.io/api,https://api-sol.bitcore.io/api,https://portal.polygon.technology/bridge,https://bridge.arbitrum.io/,https://bridge.base.org/,https://app.optimism.io/bridge/,https://mainnet.optimism.io/,https://arb1.arbitrum.io/rpc,https://mainnet.base.org/,https://goerli.optimism.io,https://goerli-rollup.arbitrum.io/rpc,https://goerli.base.org,https://verify.walletconnect.com/,https://verify.walletconnect.org/,https://api.etherscan.io/v2/api,https://solana-gateway.moralis.io/,https://tokens-data.1inch.io/images/501/";
+				ALLOWED_URL_PREFIXES = "ALLOWED-URL-PREFIXES-REPLACE-ME";
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = "$(inherited)";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES = NO;
 				CLANG_ENABLE_MODULES = YES;
