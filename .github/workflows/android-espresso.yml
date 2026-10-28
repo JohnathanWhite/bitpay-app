@@ -198,6 +198,7 @@ jobs:
           find allure-results -type f || echo "nothing"
 
       - name: Check Allure results were produced
+        id: check_allure
         if: always()
         run: |
           if [ -z "$(find allure-results -name '*.json' 2>/dev/null)" ]; then
@@ -227,6 +228,7 @@ jobs:
           sudo ln -sf /opt/allure/bin/allure /usr/local/bin/allure
 
       - name: Zip Allure Results
+        if: always() && steps.check_allure.outcome == 'success'
         run: |
           rm -f allure-results.zip
           zip -r allure-results.zip allure-results/
@@ -234,6 +236,7 @@ jobs:
           unzip -l allure-results.zip | head -30
 
       - name: Upload Allure Results Artifact
+        if: always() && steps.check_allure.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
           name: allure-results
@@ -257,6 +260,7 @@ jobs:
         run: npm install -g @testlio/cli
 
       - name: Upload Results to Testlio
+        if: always() && steps.check_allure.outcome == 'success'
         env:
           RUN_API_TOKEN: ${{ secrets.TESTLIO_RUN_TOKEN_BITPAY }}
           TESTLIO_DEVICE_ID: ${{ secrets.TESTLIO_ANDROID_DEVICE_ID }}
